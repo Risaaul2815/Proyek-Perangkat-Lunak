@@ -1,4 +1,5 @@
 import json
+
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -6,13 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Booking, Meja, Menu, Order, OrderItem
 from datetime import datetime
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from .models import Booking, Meja, Menu, Order, OrderItem
+
 
 def landing_page(request):
     return render(request, "landing_page.html")
@@ -21,12 +18,13 @@ def landing_page(request):
 def home(request):
     if not request.user.is_authenticated:
         return redirect("login")
+
     return render(request, "home.html")
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("home")  
+        return redirect("home")
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -36,7 +34,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect("home")  
+            return redirect("home")
         else:
             messages.error(request, "Username atau password salah.")
 
@@ -61,7 +59,11 @@ def register_view(request):
             messages.error(request, "Username sudah digunakan!")
             return redirect("register")
 
-        User.objects.create_user(username=username, email=email, password=password1)
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1
+        )
         messages.success(request, "Akun berhasil dibuat, silakan login.")
         return redirect("login")
 
@@ -74,17 +76,17 @@ def logout_view(request):
 
 
 def menu(request):
-    menu_makanan = Menu.objects.filter(kategori='makanan')
-    menu_minuman = Menu.objects.filter(kategori='minuman')
+    menu_makanan = Menu.objects.filter(kategori="makanan")
+    menu_minuman = Menu.objects.filter(kategori="minuman")
 
-    return render(request, 'menu.html', {
-        'menu_makanan': menu_makanan,
-        'menu_minuman': menu_minuman,
+    return render(request, "menu.html", {
+        "menu_makanan": menu_makanan,
+        "menu_minuman": menu_minuman,
     })
 
 
 def tentang(request):
-    return render(request, 'tentang.html')
+    return render(request, "tentang.html")
 
 
 @login_required
@@ -94,15 +96,16 @@ def profil(request):
 
     return render(request, 'profil.html', {
         'reservasi_user': reservasi_user,
-        'orders_user': orders_user,
+        'orders_user': orders_user,   
     })
+
 
 def reservasi(request):
     meja_list = Meja.objects.all()
-    return render(request, 'reservasi.html', {"meja_list": meja_list})
+    return render(request, "reservasi.html", {
+        "meja_list": meja_list
+    })
 
-
-from datetime import datetime
 
 @login_required
 def create_reservasi(request):
@@ -112,18 +115,26 @@ def create_reservasi(request):
         jumlah_orang = int(request.POST.get('jumlah_orang'))
         meja_id = request.POST.get('meja')
 
+        # ===============================
+        # VALIDASI TANGGAL & JAM RESERVASI
+        # ===============================
         tanggal_reservasi = datetime.strptime(tanggal, "%Y-%m-%d").date()
         jam_reservasi = datetime.strptime(jam, "%H:%M").time()
         sekarang = timezone.localtime()
 
+        # ❌ Jika tanggal sudah lewat
         if tanggal_reservasi < sekarang.date():
             messages.error(request, "Tanggal reservasi tidak boleh sebelum hari ini.")
             return redirect("reservasi")
 
+        # ❌ Jika hari ini tapi jam sudah lewat
         if tanggal_reservasi == sekarang.date() and jam_reservasi <= sekarang.time():
             messages.error(request, "Jam reservasi sudah lewat.")
             return redirect("reservasi")
 
+        # ===============================
+        # VALIDASI MEJA
+        # ===============================
         if not meja_id:
             messages.error(request, "Silakan pilih meja terlebih dahulu.")
             return redirect('reservasi')
@@ -139,8 +150,11 @@ def create_reservasi(request):
                 request,
                 f"Kapasitas meja hanya {meja.kapasitas} orang."
             )
-            return redirect('detail_reservasi')
+            return redirect('reservasi')
 
+        # ===============================
+        # SIMPAN KE DATABASE (AMAN)
+        # ===============================
         booking = Booking.objects.create(
             user=request.user,
             meja=meja,
@@ -152,24 +166,27 @@ def create_reservasi(request):
         booking.hitung_total()
         booking.hitung_dp()
 
-    return redirect('riwayat_reservasi')
+        messages.success(request, "Reservasi berhasil dibuat! Silakan melakukan DP.")
+        return redirect('home')
 
+    return redirect('reservasi')
+
+
+def update_reservasi_status(request, id):
+    reservasi = get_object_or_404(Booking, id=id)
+    status = request.GET.get('status')
+
+    if status in ['pending', 'confirmed', 'completed', 'cancelled']:
+        reservasi.status = status
+        reservasi.save()
+
+    return redirect('admin_reservasi')
 
 def detail_reservasi(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
-
-    order = Order.objects.filter(
-        customer=request.user,
-        booking=booking
-    ).first()
-
-    context = {
-        'booking': booking,  
-        'order': order
-    }
-
-    return render(request, 'detail_reservasi.html', context)
-
+    booking = get_object_or_404(Booking, id=booking_id)
+    return render(request, "detail_reservasi.html", {
+        "booking": booking
+    })
 
 
 def upload_bukti(request, id):
@@ -181,14 +198,20 @@ def upload_bukti(request, id):
         if file:
             booking.bukti_pembayaran = file
             booking.sudah_bayar_dp = True
-            booking.status = "Menunggu konfirmasi"
+            booking.status = "confirmed"
             booking.save()
 
-            messages.success(request, "Bukti pembayaran berhasil diupload!")
-            return redirect("detail_reservasi", booking_id=booking.id)
+            messages.success(
+                request,
+                "Bukti pembayaran berhasil diupload!"
+            )
+            return redirect(
+                "detail_reservasi",
+                booking_id=booking.id
+            )
 
         messages.error(request, "Harap upload bukti pembayaran.")
-    
+
     return redirect("detail_reservasi", booking_id=id)
 
 
@@ -196,30 +219,36 @@ def admin_dashboard(request):
     today = timezone.now().date()
 
     total_menu = Menu.objects.count()
-    total_orders_today = Order.objects.filter(order_time__date=today).count()
+    total_orders_today = Order.objects.filter(
+        order_time__date=today
+    ).count()
     total_reservasi = Booking.objects.count()
 
-    recent_menu = Menu.objects.all().order_by('-created_at')[:5]
-
-    recent_orders = Order.objects.select_related('customer').all().order_by('-order_time')[:5]
-
-    recent_reservasi = Booking.objects.select_related('user', 'meja').all().order_by('-waktu_dibuat')[:5]
+    recent_menu = Menu.objects.all().order_by("-created_at")[:5]
+    recent_orders = Order.objects.select_related(
+        "customer"
+    ).order_by("-order_time")[:5]
+    recent_reservasi = Booking.objects.select_related(
+        "user", "meja"
+    ).order_by("-waktu_dibuat")[:5]
 
     context = {
-        'total_menu': total_menu,
-        'total_orders_today': total_orders_today,
-        'total_reservasi': total_reservasi,
-        'recent_menu': recent_menu,
-        'recent_orders': recent_orders,
-        'recent_reservasi': recent_reservasi,
+        "total_menu": total_menu,
+        "total_orders_today": total_orders_today,
+        "total_reservasi": total_reservasi,
+        "recent_menu": recent_menu,
+        "recent_orders": recent_orders,
+        "recent_reservasi": recent_reservasi,
     }
 
-    return render(request, 'admin/admin_dashboard.html', context)
+    return render(request, "admin/admin_dashboard.html", context)
 
 
 def admin_menu(request):
     menu = Menu.objects.all()
-    return render(request, "admin/admin_menu.html", {"menu": menu})
+    return render(request, "admin/admin_menu.html", {
+        "menu": menu
+    })
 
 
 def admin_add_menu(request):
@@ -235,7 +264,7 @@ def admin_add_menu(request):
             kategori=kategori,
             harga=harga,
             deskripsi=deskripsi,
-            gambar=gambar,
+            gambar=gambar
         )
         return redirect("admin_menu")
 
@@ -257,7 +286,9 @@ def admin_edit_menu(request, id):
         menu.save()
         return redirect("admin_menu")
 
-    return render(request, "admin/admin_edit_menu.html", {"menu": menu})
+    return render(request, "admin/admin_edit_menu.html", {
+        "menu": menu
+    })
 
 
 def admin_delete_menu(request, id):
@@ -267,8 +298,10 @@ def admin_delete_menu(request, id):
 
 
 def admin_orders(request):
-    orders = Order.objects.all().order_by('-order_time')
-    return render(request, "admin/admin_orders.html", {"orders": orders})
+    orders = Order.objects.all().order_by("-order_time")
+    return render(request, "admin/admin_orders.html", {
+        "orders": orders
+    })
 
 
 def update_order_status(request, id):
@@ -284,25 +317,15 @@ def update_order_status(request, id):
 
 def admin_reservasi(request):
     reservations = Booking.objects.all().order_by("-waktu_dibuat")
-    return render(request, "admin/admin_reservasi.html", {"reservations": reservations})
+    return render(request, "admin/admin_reservasi.html", {
+        "reservations": reservations
+    })
 
 
 def delete_reservasi(request, id):
     res = get_object_or_404(Booking, id=id)
     res.delete()
     return redirect("admin_reservasi")
-
-
-@staff_member_required
-def update_reservasi_status(request, id):
-    reservasi = get_object_or_404(Booking, id=id)
-    status = request.GET.get('status')
-
-    if status in ['pending', 'confirmed', 'completed', 'cancelled']:
-        reservasi.status = status
-        reservasi.save()
-
-    return redirect('admin_reservasi')
 
 
 def add_to_order(request, menu_id):
@@ -312,32 +335,16 @@ def add_to_order(request, menu_id):
     order_id = request.session.get("order_id")
 
     if order_id:
-        order = Order.objects.filter(id=order_id, status="pending").first()
+        order = Order.objects.filter(
+            id=order_id,
+            status="pending"
+        ).first()
     else:
         order = None
 
     if not order:
-        order = Order.objects.create(customer=request.user)  
+        order = Order.objects.create(customer=request.user)
         request.session["order_id"] = order.id
-
-    booking_id = request.session.get("booking_id")
-
-    booking = None
-    if booking_id:
-        booking = Booking.objects.filter(
-            id=booking_id,
-            user=request.user,
-            status="confirmed"
-        ).first()
-
-    for item in order:
-        OrderItem.objects.create(
-            order=order,
-            menu=item.menu,
-            quantity=item.quantity
-        )
-
-    order.hitung_total()
 
     item, created = OrderItem.objects.get_or_create(
         order=order,
@@ -351,11 +358,16 @@ def add_to_order(request, menu_id):
 
     order.hitung_total()
 
+    messages.success(
+        request,
+        f"✅ {menu.nama} berhasil ditambahkan ke keranjang"
+    )
     return redirect("menu")
 
 
 def checkout(request):
     order_id = request.session.get("order_id")
+
     if not order_id:
         messages.error(request, "Keranjang masih kosong.")
         return redirect("cart")
@@ -380,9 +392,12 @@ def create_order(request):
         try:
             menu = Menu.objects.get(nama=menu_name)
         except Menu.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Menu tidak ditemukan"})
+            return JsonResponse({
+                "status": "error",
+                "message": "Menu tidak ditemukan"
+            })
 
-        order = Order.objects.create(customer=request.user)
+        order = Order.objects.create(customer_name="")
 
         OrderItem.objects.create(
             order=order,
@@ -392,25 +407,38 @@ def create_order(request):
 
         order.hitung_total()
 
-        return JsonResponse({"status": "success", "order_id": order.id})
+        return JsonResponse({
+            "status": "success",
+            "order_id": order.id
+        })
 
-    return JsonResponse({"status": "error", "message": "Metode tidak didukung"})
+    return JsonResponse({
+        "status": "error",
+        "message": "Metode tidak didukung"
+    })
 
 
 def cart_page(request):
     order_id = request.session.get("order_id")
 
     if not order_id:
-        return render(request, "cart.html", {"order": None})
+        return render(request, "cart.html", {
+            "order": None
+        })
 
-    order = Order.objects.filter(id=order_id, status="pending").first()
+    order = Order.objects.filter(
+        id=order_id,
+        status="pending"
+    ).first()
 
-    return render(request, "cart.html", {"order": order})
+    return render(request, "cart.html", {
+        "order": order
+    })
 
 
 def order_now(request, menu_id):
     menu = get_object_or_404(Menu, id=menu_id)
-    quantity = int(request.GET.get("quantity", 1)) 
+    quantity = int(request.GET.get("quantity", 1))
 
     order = Order.objects.create(customer=request.user)
 
@@ -424,23 +452,30 @@ def order_now(request, menu_id):
     order.status = "process"
     order.save()
 
-    messages.success(request, f"Pesanan {menu.nama} berhasil dibuat!")
+    messages.success(
+        request,
+        f"Pesanan {menu.nama} berhasil dibuat!"
+    )
 
     return redirect("order_detail", order_id=order.id)
 
 
-@login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    return render(request, 'order_detail.html', {'order': order})
+    return render(request, "order_detail.html", {
+        "order": order
+    })
 
 
 @login_required
 def riwayat_reservasi(request):
-    user = request.user
-    reservations = Booking.objects.filter(user=user).order_by('-waktu_dibuat')
+    reservations = Booking.objects.filter(
+        user=request.user
+    ).order_by("-waktu_dibuat")
 
-    return render(request, 'riwayat_reservasi.html', {'reservations': reservations})
+    return render(request, "riwayat_reservasi.html", {
+        "reservations": reservations
+    })
 
 
 def remove_item(request, item_id):
@@ -466,7 +501,10 @@ def remove_item(request, item_id):
         request.session["order_id"] = None
         messages.info(request, "Keranjang kosong.")
     else:
-        messages.success(request, "Item berhasil dihapus dari keranjang.")
+        messages.success(
+            request,
+            "Item berhasil dihapus dari keranjang."
+        )
 
     return redirect("cart")
 
