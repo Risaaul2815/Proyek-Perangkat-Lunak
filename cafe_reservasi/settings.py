@@ -28,6 +28,10 @@ SECRET_KEY = 'django-insecure-)k^j!kg0zo8#h=nk)0k6$yu*nwsdle1d&w($t50!#ysaw2&+9s
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.up.railway.app",
+]
+
 
 
 # Application definition
@@ -114,6 +118,7 @@ USE_I18N = True
 USE_TZ = True
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -128,6 +133,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Jika nanti kamu pakai upload media:
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
