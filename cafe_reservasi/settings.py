@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)k^j!kg0zo8#h=nk)0k6$yu*nwsdle1d&w($t50!#ysaw2&+9s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -121,6 +121,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'reservasi' / 'static',  # sesuaikan nama app kamu
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Jika nanti kamu pakai upload media:
 MEDIA_URL = '/media/'
