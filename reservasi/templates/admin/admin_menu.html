@@ -1,0 +1,83 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2>Kelola Menu Café</h2>
+    <a href="{% url 'admin_add_menu' %}" class="btn-primary">+ Tambah Menu</a>
+</div>
+
+<table class="table-style">
+    <thead>
+        <tr>
+            <th>Foto</th>
+            <th>Nama Menu</th>
+            <th>Kategori</th>
+            <th>Harga</th>
+            <th style="text-align:center;">Aksi</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in menu %}
+        <tr>
+            <td>
+                {% if m.gambar %}
+                    <img src="{{ m.gambar.url }}" class="menu-thumb">
+                {% else %}
+                    <img src="{% static 'img/default_menu.png' %}" class="menu-thumb">
+                {% endif %}
+            </td>
+            <td>{{ m.nama }}</td>
+            <td>{{ m.kategori|capfirst }}</td>
+            <td>Rp {{ m.harga|intcomma }}</td>
+            <td class="action-col">
+                <a href="{% url 'admin_edit_menu' m.id %}" class="btn-small">Edit</a>
+                <a href="{% url 'admin_delete_menu' m.id %}" class="btn-small-delete" onclick="return confirm('Yakin ingin menghapus menu ini?')">Hapus</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="empty-row">Belum ada menu terdaftar.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+.table-style {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.table-style th, .table-style td {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+}
+.table-style th {
+    background-color: #f4f4f4;
+    text-align: left;
+}
+.menu-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.action-col a {
+    margin-right: 5px;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.btn-small { background-color: #3498db; color: white; }
+.btn-small-delete { background-color: #e74c3c; color: white; }
+.empty-row {
+    text-align: center;
+    color: #888;
+}
+</style>
+
+{% endblock %}

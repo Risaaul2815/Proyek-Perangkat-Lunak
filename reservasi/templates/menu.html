@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<input type="hidden" id="csrf-token" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<section class="about-hero">
+  <div class="overlay">
+    <h1>Menu Kami</h1>
+    <p>Pilih menu favoritmu dengan mudah dan cepat.</p>
+  </div>
+</section>
+
+<section class="menu-page">
+  <h3 class="category-title">☕ Minuman Kopi dan Non-Kopi</h3>
+  <div class="menu-grid">
+
+    {% for item in menu_minuman %}
+    <div class="menu-item">
+      <img src="{{ item.gambar.url }}" alt="{{ item.nama }}" />
+      <h3>{{ item.nama }}</h3>
+      <p>{{ item.deskripsi }}</p>
+      <span class="item-price">Rp {{ item.harga|floatformat:0 }}</span>
+
+      <button class="btn-secondary"
+        onclick="openOrderModal('{{ item.nama }}', '{{ item.harga }}', '{{ item.gambar.url }}', '{{ item.id }}')">
+        Pesan
+      </button>
+
+    </div>
+    {% empty %}
+    <p>Tidak ada menu minuman tersedia.</p>
+    {% endfor %}
+
+  </div>
+
+  <h3 class="category-title">🍰 Makanan Ringan & Dessert</h3>
+  <div class="menu-grid">
+
+    {% for item in menu_makanan %}
+    <div class="menu-item">
+      <img src="{{ item.gambar.url }}" alt="{{ item.nama }}" />
+      <h3>{{ item.nama }}</h3>
+      <p>{{ item.deskripsi }}</p>
+      <span class="item-price">Rp {{ item.harga|floatformat:0 }}</span>
+
+      <button class="btn-secondary"
+        onclick="openOrderModal('{{ item.nama }}', '{{ item.harga }}', '{{ item.gambar.url }}', '{{ item.id }}')">
+        Pesan
+      </button>
+    </div>
+    {% empty %}
+    <p>Tidak ada menu makanan tersedia.</p>
+    {% endfor %}
+  </div>
+
+</section>
+
+<div id="orderModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+
+    <img id="modalItemImage" style="width:100%; height: 300px; object-fit:cover; border-radius:10px;">
+    <h2 id="menuName"></h2>
+    <p id="menuPrice"></p>
+
+    <input type="hidden" id="menuId"> 
+
+    <div class="quantity-control">
+      <button id="minusBtn">-</button>
+      <input type="number" id="menuQuantity" value="1" min="1">
+      <button id="plusBtn">+</button>
+    </div>
+
+    <div class="modal-buttons">
+      <button id="addToCartBtn">Tambahkan ke Keranjang</button>
+      <button id="orderNowBtn">Pesan Sekarang</button>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/menu.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

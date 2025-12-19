@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reservasi - Café Latte Bliss{% endblock %}
+{% block content %}
+
+<section class="about-hero">
+  <div class="overlay">
+    <h1>Reservasi Meja</h1>
+    <p>Pilih meja yang tersedia dan isi detail reservasi Anda</p>
+  </div>
+</section>
+
+<div style="text-align: center; margin-bottom: 20px;">
+    <a href="{% url 'riwayat_reservasi' %}" class="btn-primary" 
+       style="padding: 10px 20px; border-radius: 8px; display: inline-block;">
+        📝 Riwayat Reservasi Saya
+    </a>
+</div>
+
+<div class="table-selection">
+  <h3 class="category-title">Pilih Meja</h3>
+  <div class="table-grid">
+    {% for meja in meja_list %}
+    <div class="table-item" id="table-{{ meja.id }}" onclick="selectTable('{{ meja.id }}')">
+        {% if meja.gambar %}
+            <img src="{{ meja.gambar.url }}" alt="Meja {{ meja.nomor }} - Untuk {{ meja.kapasitas }} Orang" />
+        {% else %}
+            <div style="width:100%; height:100px; background:#ccc; display:flex; align-items:center; justify-content:center; border-radius:6px;">
+                No Image
+            </div>
+        {% endif %}
+        <p>Meja {{ meja.nomor }} ({{ meja.kapasitas }} Orang)</p>
+    </div>
+    {% empty %}
+    <p>Tidak ada meja tersedia.</p>
+    {% endfor %}
+  </div>
+  <p id="selected-table" class="info">Belum ada meja yang dipilih.</p>
+</div>
+
+<div class="reservation-form-container">
+  <h3 class="category-title">Detail Reservasi</h3>
+  <form id="reservation-form" method="POST" action="{% url 'create_reservasi' %}">
+    {% csrf_token %}
+    <input type="hidden" id="meja" name="meja">
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="nama">Nama Lengkap:</label>
+        <input type="text" id="nama" name="nama" 
+               value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="tanggal">Tanggal:</label>
+        <input type="date" id="tanggal" name="tanggal" required>
+      </div>
+
+      <div class="form-group">
+        <label for="waktu_mulai">Waktu Mulai:</label>
+        <input type="time" id="waktu_mulai" name="waktu_mulai" required>
+      </div>
+
+      <div class="form-group">
+        <label for="waktu_selesai">Waktu Selesai:</label>
+        <input type="time" id="waktu_selesai" name="waktu_selesai" required>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="jumlah_orang">Jumlah Orang:</label>
+        <input type="number" id="jumlah_orang" name="jumlah_orang" min="1" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary" id="btn-submit-reservasi" disabled>
+      Konfirmasi Reservasi
+    </button>
+  </form>
+</div>
+
+<!-- ========================== JS ========================== -->
+<script>
+let selectedTableNumber = null;
+
+function selectTable(id) {
+    selectedTableNumber = id; 
+    document.getElementById("meja").value = id; 
+    document.getElementById("selected-table").innerText = `Meja ${id} telah dipilih.`;
+
+    document.querySelectorAll(".table-item").forEach(item => item.classList.remove("selected"));
+    document.getElementById(`table-${id}`).classList.add("selected");
+
+  
+    document.getElementById("btn-submit-reservasi").disabled = false;
+}
+
+const reservationForm = document.getElementById('reservation-form');
+if (reservationForm) {
+    reservationForm.addEventListener('submit', function(event) {
+        if (!selectedTableNumber) {
+            alert("Mohon pilih meja terlebih dahulu.");
+            event.preventDefault();
+            return;
+        }
+
+        const start = document.getElementById('waktu_mulai').value;
+        const end = document.getElementById('waktu_selesai').value;
+        if (start >= end) {
+            alert("Waktu selesai harus lebih besar dari waktu mulai!");
+            event.preventDefault();
+            return;
+        }
+    });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Profil Pengguna{% endblock %}
+
+{% block content %}
+<style>
+  .profile-wrapper {
+    max-width: 900px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .profile-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #5a4a42;
+    margin-bottom: 15px;
+  }
+
+  .profile-item {
+    background: #faf7f0;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #eee2cf;
+    font-size: 16px;
+    color: #4b3f38;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 10px;
+    border: 1px solid #e2d5c2;
+    text-align: center;
+    vertical-align: top;
+  }
+
+  th {
+    background: #f4eadb;
+    font-weight: bold;
+  }
+
+  .status {
+    font-weight: bold;
+  }
+  .status.pending { color: #e67e22; }
+  .status.process { color: #3498db; }
+  .status.done { color: #2ecc71; }
+
+  hr {
+    margin: 30px 0;
+    border: none;
+    border-top: 1px solid #eee;
+  }
+</style>
+
+<div class="profile-wrapper">
+
+  <!-- ================= PROFIL ================= -->
+  <div class="profile-title">Profil Pengguna</div>
+
+  <div class="profile-item">
+    <strong>Nama:</strong>
+    {{ user.get_full_name|default:user.username }}
+  </div>
+
+  <div class="profile-item">
+    <strong>Email:</strong>
+    {{ user.email|default:"Belum ada email" }}
+  </div>
+
+  <hr>
+
+  <!-- ================= RIWAYAT RESERVASI ================= -->
+  <div class="profile-title">Riwayat Reservasi</div>
+
+  {% if reservasi_user %}
+  <table>
+      <tr>
+          <th>Tanggal</th>
+          <th>Status</th>
+          <th>Aksi</th>
+      </tr>
+      {% for r in reservasi_user %}
+      <tr>
+          <td>{{ r.tanggal_reservasi|date:"d M Y" }}</td>
+          <td>{{ r.get_status_display }}</td>
+          <td>
+              <a href="{% url 'detail_reservasi' r.id %}">Lihat Detail</a>
+          </td>
+      </tr>
+      {% endfor %}
+  </table>
+  {% else %}
+     <p>Belum ada reservasi.</p>
+  {% endif %}
+
+  <hr>
+
+  <!-- ================= RIWAYAT PEMESANAN ================= -->
+  <div class="profile-title">Riwayat Pemesanan</div>
+
+  {% if orders_user %}
+  <table>
+      <tr>
+          <th>Menu Dipesan</th>
+          <th>Jumlah</th>
+          <th>Total Harga</th>
+          <th>Status</th>
+      </tr>
+
+      {% for order in orders_user %}
+      <tr>
+          <td>
+              {% for item in order.items.all %}
+                  {{ item.menu.nama }}<br>
+              {% endfor %}
+          </td>
+
+          <td>
+              {% for item in order.items.all %}
+                  {{ item.quantity }}<br>
+              {% endfor %}
+          </td>
+
+          <td>
+              Rp {{ order.total_price|intcomma }}
+          </td>
+
+          <td>
+              <span class="status {{ order.status }}">
+                  {{ order.get_status_display }}
+              </span>
+          </td>
+      </tr>
+      {% endfor %}
+  </table>
+  {% else %}
+     <p>Belum ada pemesanan.</p>
+  {% endif %}
+
+</div>
+
+{% endblock %}

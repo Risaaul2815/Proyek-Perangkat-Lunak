@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+.detail-container {
+    max-width: 800px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.detail-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.item-info {
+    margin-left: 15px;
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.detail-footer button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.detail-footer button:hover {
+    background-color: #0069d9;
+}
+
+.user-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f7f7f7;
+    border-radius: 8px;
+}
+</style>
+
+<div class="detail-container">
+    <h2 style="text-align:center; margin-bottom:20px;">📄 Detail Pesanan</h2>
+
+    {% for item in order.items.all %}
+    <div class="detail-item">
+        {% if item.menu.gambar %}
+            <img src="{{ item.menu.gambar.url }}" alt="{{ item.menu.nama }}">
+        {% else %}
+            <img src="{% static 'default_food.png' %}" alt="No Image">
+        {% endif %}
+
+        <div class="item-info">
+            <div>
+                <h4 style="margin:0;">{{ item.menu.nama }}</h4>
+                <p style="margin:0;">Jumlah: {{ item.quantity }}</p>
+                <p style="margin:0;">Harga: Rp {{ item.menu.harga|floatformat:0 }}</p>
+            </div>
+            <div>
+                <p style="margin:0;">Subtotal: Rp {{ item.subtotal|floatformat:0 }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="detail-footer">
+        <div>Total: Rp {{ order.total_price|floatformat:0 }}</div>
+        <a href="{% url 'menu' %}"><button>Kembali</button></a>
+    </div>
+</div>
+{% endblock %}

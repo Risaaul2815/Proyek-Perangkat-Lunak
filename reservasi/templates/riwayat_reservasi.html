@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="riwayat-wrapper">
+    <section class="riwayat-header" style="text-align:center; margin-bottom:30px;">
+        <h2>📝 Riwayat Reservasi Saya</h2>
+        <p>Berikut daftar reservasi yang telah Anda buat.</p>
+    </section>
+
+    {% if reservations %}
+        <div class="riwayat-card-wrapper">
+            {% for res in reservations %}
+            <div class="riwayat-card">
+                <div class="riwayat-card-info">
+                    <p class="riwayat-meja">Meja: {{ res.meja.nomor }} ({{ res.jumlah_orang }} Orang)</p>
+                    <p class="riwayat-tanggal">Tanggal: {{ res.tanggal_reservasi }}<br> Waktu: {{ res.jam_reservasi }}</p>
+                </div>
+                <div class="riwayat-card-actions">
+                    <div class="riwayat-status-badge 
+                        {% if res.status == 'pending' %}riwayat-status-pending
+                        {% elif res.status == 'confirmed' %}riwayat-status-confirmed
+                        {% elif res.status == 'cancelled' %}riwayat-status-cancelled
+                        {% else %}riwayat-status-other{% endif %}">
+                        {{ res.get_status_display }}
+                    </div>
+                    <a href="{% url 'detail_reservasi' res.id %}" class="riwayat-btn-detail">Lihat Detail</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="text-align:center; margin-top:50px;">Belum ada riwayat reservasi.</p>
+    {% endif %}
+</div>
+{% endblock %}

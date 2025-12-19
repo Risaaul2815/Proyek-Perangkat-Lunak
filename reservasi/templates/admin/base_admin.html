@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Café Latte Bliss</title>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+
+<body>
+
+<!-- === WRAPPER UTAMA (HARUS admin-container AGAR COCOK DENGAN CSS) === -->
+<div class="admin-container">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar">
+        <h2 class="logo">☕ Admin Cafe</h2>
+
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'admin_dashboard' %}">📊 Dashboard</a></li>
+            <li><a href="{% url 'admin_menu' %}">📋 Kelola Menu</a></li>
+            <li><a href="{% url 'admin_orders' %}">🛒 Pesanan</a></li>
+            <li><a href="{% url 'admin_reservasi' %}">📅 Reservasi</a></li>
+            <li><a href="{% url 'landing_page' %}">🏠 Kembali ke Website</a></li>
+        </ul>
+    </aside>
+
+    <!-- ========== MAIN CONTENT (HARUS main-content) ========== -->
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</div>
+
+</body>
+</html>

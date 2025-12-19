@@ -1,0 +1,110 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2>Edit Menu: {{ menu.nama }}</h2>
+    <a href="{% url 'admin_menu' %}" class="btn-small">Kembali ke Menu</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="form-admin">
+  {% csrf_token %}
+
+  <div class="form-group">
+    <label for="name">Nama Menu</label>
+    <input type="text" name="name" id="name" required value="{{ menu.nama }}">
+  </div>
+
+  <div class="form-group">
+    <label for="category">Kategori</label>
+    <select name="category" id="category" required>
+      <option value="makanan" {% if menu.kategori == 'makanan' %}selected{% endif %}>Makanan</option>
+      <option value="minuman" {% if menu.kategori == 'minuman' %}selected{% endif %}>Minuman</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="price">Harga</label>
+    <input type="number" name="price" id="price" required value="{{ menu.harga }}">
+  </div>
+
+  <div class="form-group">
+    <label for="image">Foto Menu</label>
+    {% if menu.gambar %}
+      <p>Gambar saat ini:</p>
+      <img src="{{ menu.gambar.url }}" alt="{{ menu.nama }}" style="max-width:150px; display:block; margin-bottom:10px;">
+    {% endif %}
+    <input type="file" name="image" id="image">
+  </div>
+
+  <div class="form-group">
+    <label for="deskripsi">Deskripsi (opsional)</label>
+    <textarea name="deskripsi" id="deskripsi" placeholder="Tambahkan deskripsi menu...">{{ menu.deskripsi }}</textarea>
+  </div>
+
+  <button class="btn-primary" type="submit">Simpan Perubahan</button>
+</form>
+
+<style>
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.btn-small {
+    padding: 5px 12px;
+    background-color: #3498db;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+}
+.btn-small:hover {
+    background-color: #2980b9;
+}
+.form-admin {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 600px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #333;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.btn-primary {
+    background-color: #2ecc71;
+    color: #fff;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn-primary:hover {
+    background-color: #27ae60;
+}
+</style>
+
+{% endblock %}

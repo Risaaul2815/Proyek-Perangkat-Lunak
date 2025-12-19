@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.detail-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
+}
+.detail-card {
+    background: white;
+    width: 90%;
+    max-width: 550px;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e8e8e8;
+}
+.detail-card p {
+    font-size: 15px;
+    margin: 6px 0;
+}
+.section-title {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 26px;
+    font-weight: 700;
+}
+.btn-primary {
+    margin-top: 10px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+}
+.success-msg {
+    color: green;
+    font-weight: 600;
+}
+</style>
+
+<h2 class="section-title">Detail Reservasi</h2>
+
+<div class="detail-wrapper">
+<div class="detail-card">
+
+    <p><strong>Nama Pemesan:</strong>
+        {{ booking.user.get_full_name|default:booking.user.username }}
+    </p>
+
+    <hr>
+
+    <p><strong>Meja:</strong> Meja {{ booking.meja.nomor }}</p>
+    <p><strong>Tanggal:</strong> {{ booking.tanggal_reservasi }}</p>
+    <p><strong>Jam:</strong> {{ booking.jam_reservasi }}</p>
+    <p><strong>Jumlah Orang:</strong> {{ booking.jumlah_orang }}</p>
+
+    <hr>
+
+    <p><strong>Total Harga Reservasi:</strong> Rp {{ booking.total_harga }}</p>
+    <p><strong>DP (30%):</strong> Rp {{ booking.dp_nominal }}</p>
+    <p><strong>Status:</strong> {{ booking.get_status_display }}</p>
+
+    <hr>
+
+    {% if not booking.sudah_bayar_dp %}
+        <h3>Upload Bukti Pembayaran</h3>
+        <form method="POST" enctype="multipart/form-data"
+              action="{% url 'upload_bukti' booking.id %}">
+            {% csrf_token %}
+            <input type="file" name="bukti" required>
+            <button type="submit" class="btn-primary">Upload</button>
+        </form>
+    {% else %}
+        <p class="success-msg">✔ Bukti pembayaran telah diupload</p>
+        <a href="{{ booking.bukti_pembayaran.url }}" target="_blank">
+            Lihat Bukti Pembayaran
+        </a>
+    {% endif %}
+
+    {% if order %}
+    <hr>
+    <h3>Pesanan Menu</h3>
+    <ul>
+    {% for item in order.items.all %}
+        <li>{{ item.menu.nama }} x {{ item.quantity }}</li>
+    {% endfor %}
+    </ul>
+
+    <p><strong>Total Menu:</strong> Rp {{ order.total_price }}</p>
+    {% else %}
+    <p>Belum ada pesanan menu.</p>
+    {% endif %}
+
+</div>
+</div>
+{% endblock %}

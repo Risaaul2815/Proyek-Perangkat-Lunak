@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section class="page active">
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-image">
+        <img src="{% static 'images/cafe.jpg' %}" alt="Cafe Latte Bliss">
+      </div>
+      <div class="hero-text">
+        <h3>Selamat Datang di Café Latte Bliss</h3>
+        <p>
+          Nikmati suasana nyaman dengan aroma kopi yang menggoda. 
+          Kami menghadirkan pengalaman terbaik bagi para pecinta kopi 
+          dengan berbagai varian minuman dan pastry buatan tangan yang lezat.
+        </p>
+        <a href="{% url 'menu' %}" class="btn" style="text-decoration: none;">Lihat Menu Kami</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-title-wrap">
+    <h2 class="section-title">Menu Best Seller Kami</h2>
+  </div>
+
+  <section class="menu-section">
+    <div class="carousel-container">
+      <div class="carousel">
+        <div class="menu-card">
+          <img src="{% static 'images/latte.jpg' %}" alt="Classic Latte">
+          <div class="menu-overlay">
+            <h3>Classic Latte</h3>
+            <p>Perpaduan espresso, susu, dan busa lembut.</p>
+            <span>Rp 25.000</span>
+          </div>
+        </div>
+        <div class="menu-card">
+          <img src="{% static 'images/croissant.jpg' %}" alt="Almond Croissant">
+          <div class="menu-overlay">
+            <h3>Almond Croissant</h3>
+            <p>Roti Prancis renyah dengan isian almond.</p>
+            <span>Rp 28.000</span>
+          </div>
+        </div>
+        <div class="menu-card">
+          <img src="{% static 'images/sandwich.jpeg' %}" alt="Chicken Pesto Sandwich">
+          <div class="menu-overlay">
+            <h3>Chicken Pesto Sandwich</h3>
+            <p>Roti gandum isi ayam, pasta, dan sayuran segar.</p>
+            <span>Rp 45.000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="{% static 'js/script.js' %}"></script>
+</section>
+{% endblock %}
